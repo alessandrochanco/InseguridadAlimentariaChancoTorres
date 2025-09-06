@@ -26,4 +26,4 @@ jobs:
 
       - name: Run the script
         run: |
-          python app.py  # Aquí deberías ejecutar el archivo que quieras
+          python app.py 
