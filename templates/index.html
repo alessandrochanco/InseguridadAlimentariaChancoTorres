@@ -1,0 +1,71 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ejecutar Modelo ML Alessandro</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 24px; }
+    .btn { padding: 10px 16px; border: 0; border-radius: 10px; cursor: pointer; }
+    .primary { background: #3b82f6; color: white; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 20px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; }
+    .muted { color: #6b7280; }
+    img { width: 100%; height: auto; border-radius: 8px; }
+    .spinner { display: none; margin-left: 8px; }
+    .row { display: flex; align-items: center; gap: 12px; }
+    .error { color: #b91c1c; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Ejecutar Modelo de Machine Learningg</h1>
+  <p class="muted">Al hacer clic, se entrenará el modelo desde cero y se generarán los gráficos/mapas del notebook.</p>
+  <div class="row">
+    <button id="runBtn" class="btn primary">Ejecutar ahora</button>
+    <span id="loading" class="spinner">Ejecutando... puede tardar</span>
+  </div>
+  <div id="error" class="error"></div>
+  <div id="results" class="grid"></div>
+
+  <script>
+    const runBtn = document.getElementById('runBtn');
+    const loading = document.getElementById('loading');
+    const results = document.getElementById('results');
+    const errorBox = document.getElementById('error');
+
+    runBtn.addEventListener('click', async () => {
+      runBtn.disabled = true;
+      loading.style.display = 'inline-block';
+      errorBox.textContent = '';
+      results.innerHTML = '';
+
+      try {
+        const res = await fetch('/run', { method: 'POST' });
+        const data = await res.json();
+        if (!data.ok) {
+          throw new Error(data.error || 'Error desconocido');
+        }
+        if (data.images.length === 0) {
+          results.innerHTML = '<div class="muted">No se generaron imágenes. Revisa tu notebook para asegurar que crea figuras con Matplotlib/GeoPandas.</div>';
+          return;
+        }
+        data.images.forEach(src => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          const img = document.createElement('img');
+          img.src = src;
+          img.loading = 'lazy';
+          card.appendChild(img);
+          results.appendChild(card);
+        });
+      } catch (err) {
+        errorBox.textContent = err.message;
+      } finally {
+        runBtn.disabled = false;
+        loading.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
